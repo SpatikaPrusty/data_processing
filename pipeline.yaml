@@ -1,0 +1,30 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
+
+- task: Docker@2
+  inputs:
+    containerRegistry: '$(dockerRegistryServiceConnection)'
+    repository: '$(imageRepository)'
+    command: 'buildAndPush'
+    Dockerfile: '$(dockerfilePath)'
+    tags: '$(tag)'
+    --build-arg DB_NAME=$(DB_NAME)
+      --build-arg DB_HOST=$(DB_HOST)
+      --build-arg DB_PASS=$(DB_PASS)
+      --build-arg DB_PORT=$(DB_PORT)
+      --build-arg DB_SCHEMA=$(DB_SCHEMA)
+      --build-arg DB_TYPE=$(DB_TYPE)
+      --build-arg DB_USER=$(DB_USER)
+
+- script: |
+    docker rmi $(containerRegistry)/$(imageRepository):$(tag)
+  displayName: 'Clean up local Docker images'
