@@ -17,6 +17,7 @@ steps:
     command: 'buildAndPush'
     Dockerfile: '$(dockerfilePath)'
     tags: '$(tag)'
+    arguments: |
       --build-arg DB_NAME=$(DB_NAME)
       --build-arg DB_HOST=$(DB_HOST)
       --build-arg DB_PASS=$(DB_PASS)
