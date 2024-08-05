@@ -1,22 +1,23 @@
 trigger:
   - main
-
 pool:
   vmImage: 'ubuntu-latest'
-
+variables:
+  dockerRegistryServiceConnection: '<SERVICE_CONNECTION_NAME>'
+  imageRepository: '<ACR_REPOSITORY>'
+  containerRegistry: '<ACR_LOGIN_SERVER>'
+  dockerfilePath: '**/Dockerfile'
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.x'
-    addToPath: true
-
+# - script: |
+#     echo Add other tasks to build, test, and deploy the project.
+#     docker login <acr-name>.azurecr.io -u <acr-username> -p <acr_password>
+#   displayName: 'Login to acr'
 - task: Docker@2
   inputs:
     containerRegistry: '$(dockerRegistryServiceConnection)'
     repository: '$(imageRepository)'
-    command: 'buildAndPush'
+    command: 'build'
     Dockerfile: '$(dockerfilePath)'
-    tags: '$(tag)'
     arguments: |
       --build-arg DB_NAME=$(DB_NAME)
       --build-arg DB_HOST=$(DB_HOST)
@@ -25,7 +26,9 @@ steps:
       --build-arg DB_SCHEMA=$(DB_SCHEMA)
       --build-arg DB_TYPE=$(DB_TYPE)
       --build-arg DB_USER=$(DB_USER)
-
-- script: |
-    docker rmi $(containerRegistry)/$(imageRepository):$(tag)
-  displayName: 'Clean up local Docker images'
+- task: Docker@2
+  inputs:
+    containerRegistry: '$(dockerRegistryServiceConnection)'
+    repository: '$(imageRepository)'
+    command: 'push'
+    tags: $(Build.BuildId)
